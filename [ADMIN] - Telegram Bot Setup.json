@@ -1,0 +1,122 @@
+{
+  "name": "[ADMIN] - Telegram Bot Setup",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e59028b7-b72e-4aae-841a-ffe98a2767af",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e5a7d1bd-b442-4e14-b516-5b3a317a6f6c",
+              "name": "telegramBaseUrl",
+              "value": "https://api.telegram.org/bot8711001803:AAHX858oDeDuS6dZ2Wb_YCW2yJwGz9g_D0I",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "dd3da602-7128-4fad-819d-9029ae6a4d92",
+      "name": "Set Config Variables"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $node[\"Set Config Variables\"].json.telegramBaseUrl }}/setMyDescription",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"description\": \"Soy el asistente inteligente de la Clínica. Puedo agendar tus citas médicas por texto o nota de voz en segundos. 🩺✨\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "e68c98c8-c4d6-45e3-aca2-4171b5ce926e",
+      "name": "POST: Set Bot Description"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $node[\"Set Config Variables\"].json.telegramBaseUrl }}/setMyShortDescription",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"short_description\": \"Agente de agendamiento inteligente para la Clínica. Desarrollado con n8n, GPT-4o y PostgreSQL por Emmanuel Arango.\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "0f07add4-cab6-4317-8053-11591d2c55ee",
+      "name": "POST: Set About Text"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Set Config Variables",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Config Variables": {
+      "main": [
+        [
+          {
+            "node": "POST: Set Bot Description",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST: Set Bot Description": {
+      "main": [
+        [
+          {
+            "node": "POST: Set About Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c473049e-9d47-49ff-a8e9-e770efa10125",
+  "meta": {
+    "instanceId": "49bc6cf14ef9bd14b48956f8509f7a16ff8dc6a3dedcf64f6912921a5863881e"
+  },
+  "id": "tv09a68IgMtRB8Im",
+  "tags": []
+}

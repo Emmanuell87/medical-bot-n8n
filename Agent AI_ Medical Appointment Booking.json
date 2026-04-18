@@ -1,0 +1,269 @@
+{
+  "name": "Agent AI: Medical Appointment Booking",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -272,
+        -192
+      ],
+      "id": "19b58b68-ccad-465d-b578-319513857122",
+      "name": "When chat message received",
+      "webhookId": "1a03bc85-f751-4a86-b518-ea07270e1383"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Rol: Eres el recepcionista virtual de la Clínica Médica. Tu única función es agendar citas en Google Calendar.\n\nLógica de Tiempo y Formato:\n- Hoy es: {{ $now.format('cccc, dd MMMM yyyy, HH:mm') }}.\n- Al usar la herramienta de Google Calendar, llena estos campos:\n  * Start Time: Formato ISO 8601 (Ejemplo: 2026-04-17T08:00:00).\n  * End Time: Calcula 30 minutos después del inicio.\n  * Summary: \"Cita: [Nombre del Paciente] - [Motivo]\".\n  * Description: \"Paciente: [Nombre del Paciente]. Motivo: [Motivo]\".\n\nReglas de Extracción de Datos:\n1. Necesitas: Nombre completo, motivo de consulta y fecha/hora exacta.\n2. Si el usuario no dice hora exacta, pregunta: \"¿A qué hora te queda mejor?\".\n\nProtocolo de Acción:\n1. Si el mensaje inicial ya tiene los datos, salta al paso 3.\n2. Si faltan datos, pídelos amablemente uno a uno.\n3. RESUMEN DE CONFIRMACIÓN (Obligatorio): Antes de agendar, di: \n   \"Entendido, [Nombre]. Agendaré tu cita por [Motivo] para el [Fecha] a las [Hora]. ¿Es correcto?\".\n4. EJECUCIÓN: Solo si el usuario confirma (ej. \"Sí\", \"Dale\"), usa la herramienta.\n\nRestricciones:\n- No inventes disponibilidades ni agendes sin confirmación.\n- Si preguntan cosas ajenas, indica que solo gestionas la agenda."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        160,
+        0
+      ],
+      "id": "e55b93af-3cb2-4bd4-a8c0-5c46cc85d432",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        208
+      ],
+      "id": "3f263aef-9ede-4e77-8374-e40229c08fba",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "xZguJwNzFUkznPy7",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Sirve para crear citas en el calendario médico. Requiere fecha de inicio, fecha de fin y el nombre del paciente en el título",
+        "calendar": {
+          "__rl": true,
+          "value": "8bd54fa0960a1c44444cbc080ca76a1c8d18dc1c40ca78decbeda0050ba2320d@group.calendar.google.com",
+          "mode": "list",
+          "cachedResultName": "Test-n8n-Medico"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "description": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Description', ``, 'string') }}",
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        208
+      ],
+      "id": "ba9d6a3c-0946-4d1a-babb-0ed2ad4e358d",
+      "name": "Create an event in Google Calendar",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "reVij8hHJOKUlM3l",
+          "name": "Google Calendar account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        224,
+        208
+      ],
+      "id": "0bbf3e7d-e64f-451e-a5ac-3d358bea4d6a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -304,
+        0
+      ],
+      "id": "3b6375ba-323c-405d-b429-afebf3b87606",
+      "name": "Telegram Trigger",
+      "webhookId": "99641eba-b7f2-4de4-a273-104ab5ac1fd9",
+      "credentials": {
+        "telegramApi": {
+          "id": "BesOErJnHBdPC9Ct",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5e78288d-224c-4bc5-9a43-54958eebbb47",
+              "name": "chatInput",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "e7008efa-15de-4f99-98ca-9332edfbd29c",
+              "name": "sessionId",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -96,
+        0
+      ],
+      "id": "5d81fc8f-54a0-4e5b-ad12-81ebee2c3af1",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $node[\"Telegram Trigger\"].json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        512,
+        0
+      ],
+      "id": "a5f85888-6d19-4b5f-8bba-48f80fa25dfc",
+      "name": "Send a text message",
+      "webhookId": "d6a2d562-dca9-4366-b4f0-b176ae22b3e9",
+      "credentials": {
+        "telegramApi": {
+          "id": "BesOErJnHBdPC9Ct",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        []
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create an event in Google Calendar": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "timezone": "America/Bogota",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "caad8279-5a59-42cf-87d2-c51dbb0ff629",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "49bc6cf14ef9bd14b48956f8509f7a16ff8dc6a3dedcf64f6912921a5863881e"
+  },
+  "id": "Uo0BCzZ14aymequH",
+  "tags": []
+}
